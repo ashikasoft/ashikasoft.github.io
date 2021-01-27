@@ -1,34 +1,106 @@
-(defproject ashikasoft-site "0.1.0-SNAPSHOT"
-  :description "FIXME: write description"
-  :url "https://www.ashikasoft.com/"
-  :license {:name "EPL-2.0 OR GPL-2.0-or-later WITH Classpath-exception-2.0"
-            :url "https://www.eclipse.org/legal/epl-2.0/"}
-  :min-lein-version "2.7.1"
-  :dependencies
-  [[org.clojure/clojure "1.10.1"]
-   [org.clojure/clojurescript "1.10.773"]
-   [reagent "1.0.0" ]
-   [ring "1.8.2"]
-   [org.eclipse.jetty/jetty-server "9.4.31.v20200723"]
-   [org.eclipse.jetty.websocket/websocket-server "9.4.31.v20200723"]
-   [org.eclipse.jetty.websocket/websocket-servlet "9.4.31.v20200723"]
-   [stasis "2.5.0"]]
-  :source-paths ["src/clj"]
-  :plugins
-  [[lein-cljsbuild "1.1.8"]
-   [lein-ring "0.12.5"]] 
-  :ring {:handler ashikasoft-site.core/app}
-  :cljsbuild {:builds
-              [{:source-paths ["src/cljs"]
-                :compiler {:output-to "target/ashikadict.js"
-                           :optimizations :advanced}}]}
-  :aliases {"fig"       ["trampoline" "run" "-m" "figwheel.main"]
-            "fig:build" ["trampoline" "run" "-m" "figwheel.main" "-b" "dev" "-r"]
-            "fig:min"   ["run" "-m" "figwheel.main" "-O" "advanced" "-bo" "dev"]
-            "fig:test"  ["run" "-m" "figwheel.main" "-co" "test.cljs.edn" "-m" "ashikasoft-site.test-runner"]}
+(defproject ashikaweb2 "0.1.1-SNAPSHOT"
 
-  :profiles {:dev {:dependencies [[com.bhauman/figwheel-main "0.2.12"]
-                                  [com.bhauman/rebel-readline-cljs "0.1.4"]]
-                   
-                   :resource-paths ["target" "resources"]
-                   :clean-targets ^{:protect false} ["target" "resources/public/cljs-out"]}})
+  :description "A simple app for conducting surveys"
+  :url "http://www.ashikasoft.com"
+
+  :dependencies [[ashikasoft/jdict "1.0.1-SNAPSHOT"]
+                 [ashikasoft/webstack "0.1.1-SNAPSHOT"]
+                 [clojure.java-time "0.3.2"]
+                 [org.clojure/clojure "1.10.1"]
+                 [org.clojure/clojurescript "1.10.773" :scope "provided"]]
+
+  :min-lein-version "2.0.0"
+  
+  :source-paths ["src/clj" "src/cljs" "src/cljc"]
+  :test-paths ["test/clj"]
+  :resource-paths ["resources" "target/cljsbuild"]
+  :target-path "target/%s/"
+  :main ^:skip-aot ashikaweb2.core
+
+  :plugins [[lein-cljsbuild "1.1.7"]
+            [lein-immutant "2.1.0"]]
+  :clean-targets ^{:protect false}
+  [:target-path [:cljsbuild :builds :app :compiler :output-dir] [:cljsbuild :builds :app :compiler :output-to]]
+  :figwheel
+  {:http-server-root "public"
+   :nrepl-port 7002
+   :css-dirs ["resources/public/css"]
+   :nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
+  
+
+  :profiles
+  {:uberjar {:omit-source true
+             :prep-tasks ["compile" ["cljsbuild" "once" "min"]]
+             :cljsbuild
+             {:builds
+              {:min
+               {:source-paths ["src/cljc" "src/cljs" "env/prod/cljs"]
+                :compiler
+                {:output-dir "target/cljsbuild/public/js"
+                 :output-to "target/cljsbuild/public/js/app.js"
+                 :source-map "target/cljsbuild/public/js/app.js.map"
+                 :optimizations :advanced
+                 :pretty-print false
+                 :closure-warnings
+                 {:externs-validation :off :non-standard-jsdoc :off}
+                 :externs ["react/externs/react.js"]}}}}
+             
+             
+             :aot :all
+             :uberjar-name "ashikaweb2.jar"
+             :source-paths ["env/prod/clj"]
+             :resource-paths ["env/prod/resources"]}
+
+   :dev           [:project/dev :profiles/dev]
+   :test          [:project/dev :project/test :profiles/test]
+
+   :project/dev  {:jvm-opts ["-Dconf=dev-config.edn"]
+                  :dependencies [[binaryage/devtools "1.0.2"]
+                                 [com.cemerick/piggieback "0.2.2"]
+                                 [doo "0.1.11"]
+                                 [expound "0.8.7"]
+                                 [figwheel-sidecar "0.5.20"]
+                                 [pjstadig/humane-test-output "0.10.0"]
+                                 [prone "2020-01-17"]
+                                 [ring/ring-devel "1.8.2"]
+                                 [ring/ring-mock "0.4.0"]]
+                  :plugins      [[com.jakemccrary/lein-test-refresh "0.23.0"]
+                                 [lein-doo "0.1.11"]
+                                 [lein-figwheel "0.5.20"]]
+                  :cljsbuild
+                  {:builds
+                   {:app
+                    {:source-paths ["src/cljs" "src/cljc" "env/dev/cljs"]
+                     :figwheel {:on-jsload "ashikaweb2.core/mount-components"}
+                     :compiler
+                     {:main "ashikaweb2.app"
+                      :asset-path "/js/out"
+                      :output-to "target/cljsbuild/public/js/app.js"
+                      :output-dir "target/cljsbuild/public/js/out"
+                      :source-map true
+                      :optimizations :none
+                      :pretty-print true}}}}
+                  
+                  
+                  
+                  :doo {:build "test"}
+                  :source-paths ["env/dev/clj"]
+                  :resource-paths ["env/dev/resources"]
+                  :repl-options {:init-ns user}
+                  :injections [(require 'pjstadig.humane-test-output)
+                               (pjstadig.humane-test-output/activate!)]}
+   :project/test {:jvm-opts ["-Dconf=test-config.edn"]
+                  :resource-paths ["env/test/resources"]
+                  :cljsbuild
+                  {:builds
+                   {:test
+                    {:source-paths ["src/cljc" "src/cljs" "test/cljs"]
+                     :compiler
+                     {:output-to "target/test.js"
+                      :main "ashikaweb2.doo-runner"
+                      :optimizations :whitespace
+                      :pretty-print true}}}}}
+                  
+                  
+   :profiles/dev {}
+   :profiles/test {}})
