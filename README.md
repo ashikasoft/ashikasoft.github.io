@@ -10,7 +10,9 @@ Subsequently, it was included as part of a trial web application in Scala, hoste
 
 It was then ported to Clojure, superseding the Scala app on the same AWS site.
 
-Finally, it was rewritten in Clojurescript, so that all dependencies are statically hosted on Github pages.
+Finally, it forked into 2 branches:
+* a Clojurescript branch, so that all dependencies are statically hosted on Github pages.
+* a slimmed-down version of the Clojure branch, which runs on a regular host (Heroku)
 
 ## Development
 

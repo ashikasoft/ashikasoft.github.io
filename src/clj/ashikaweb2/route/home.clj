@@ -16,6 +16,5 @@
   [""
    {:middleware [middleware/wrap-csrf
                  middleware/wrap-formats]}
-   ["/"
-    (applyfn main/render)]])
+   ["/" (applyfn main/render)]])
 

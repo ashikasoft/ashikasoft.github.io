@@ -3,10 +3,10 @@
   :description "A simple app for conducting surveys"
   :url "http://www.ashikasoft.com"
 
-  :dependencies [[ashikasoft/jdict "1.0.1-SNAPSHOT"]
-                 [ashikasoft/webstack "0.1.1-SNAPSHOT"]
+  :dependencies [[ashikasoft/jdict "1.0.2"]
+                 [ashikasoft/webstack "0.1.2"]
                  [clojure.java-time "0.3.2"]
-                 [org.clojure/clojure "1.10.1"]
+                 [org.clojure/clojure "1.10.2"]
                  [org.clojure/clojurescript "1.10.773" :scope "provided"]]
 
   :min-lein-version "2.0.0"
@@ -70,7 +70,7 @@
                   :cljsbuild
                   {:builds
                    {:app
-                    {:source-paths ["src/cljs" "src/cljc" "env/dev/cljs"]
+                    {:source-paths ["src/cljs" "src/cljc" "env/dev/cljs" "checkouts/ashikasoft-jdict/src/cljs"]
                      :figwheel {:on-jsload "ashikaweb2.core/mount-components"}
                      :compiler
                      {:main "ashikaweb2.app"
